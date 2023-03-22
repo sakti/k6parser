@@ -147,4 +147,3 @@ mod tests {
         assert_eq!(parse_json_result(payload).len(), 4);
     }
 }
-
