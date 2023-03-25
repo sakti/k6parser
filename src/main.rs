@@ -6,6 +6,7 @@ use color_eyre::eyre::Result;
 use flate2::read::GzDecoder;
 use itertools::Itertools;
 use k6::Record;
+use minijinja::{context, Environment};
 use quantogram::QuantogramBuilder;
 use serde::Serialize;
 
@@ -56,8 +57,10 @@ struct MeasurementPoint {
 
 fn main() -> Result<()> {
     color_eyre::install()?;
-    println!("k6 parser");
     let args = Args::parse();
+
+    let mut env = Environment::new();
+    env.add_template("template.html", include_str!("template.html"))?;
 
     let compressed_content = fs::read(&args.file)?;
 
@@ -219,7 +222,12 @@ fn main() -> Result<()> {
         })
         .collect();
 
-    println!("result = {}", serde_json::to_string_pretty(&data).unwrap());
+    let output = serde_json::to_string(&data)?;
+    let tmpl = env.get_template("template.html")?;
+
+    let result = tmpl.render(context!(output => output))?;
+
+    println!("{}", result);
 
     Ok(())
 }

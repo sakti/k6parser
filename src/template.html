@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>K6 Result Plot</title>
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+</head>
+<body>
+  <div id="plot1"></div>
+  <div id="plot2"></div>
+  <script>
+  const json = {{ output|safe }};
+
+  const data1 = [
+      {
+        x: json.map((d) => d.t),
+        y: json.map((d) => d.vu),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Virtual Users'
+      },
+      {
+        x: json.map((d) => d.t),
+        y: json.map((d) => d.rps),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Requests per Second',
+        yaxis: 'y2'
+      }
+    ];
+
+    const layout1 = {
+      title: 'Virtual Users vs Requests per Second',
+      xaxis: {
+        title: 'Time'
+      },
+      yaxis: {
+        title: 'Virtual Users',
+        showline: true,
+        zeroline: false,
+        showgrid: false
+      },
+      yaxis2: {
+        title: 'Requests per Second',
+        overlaying: 'y',
+        side: 'right'
+      }
+    };
+
+    const data2 = [
+      {
+        x: json.map((d) => d.t),
+        y: json.map((d) => d.rps),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Requests per Second'
+      },
+      {
+        x: json.map((d) => d.t),
+        y: json.map((d) => d.avg),
+        type: 'scatter',
+        mode: 'lines',
+        name: 'Average Response Time',
+        yaxis: 'y2'
+      },
+      {
+        x: json.map((d) => d.t),
+        y: json.map((d) => d.p90),
+        type: 'scatter',
+        mode: 'lines',
+        name: '90th Percentile',
+        yaxis: 'y2'
+      },
+      {
+        x: json.map((d) => d.t),
+        y: json.map((d) => d.p95),
+        type: 'scatter',
+        mode: 'lines',
+        name: '95th Percentile',
+        yaxis: 'y2'
+      },
+      {
+        x: json.map((d) => d.t),
+        y: json.map((d) => d.p99),
+        type: 'scatter',
+        mode: 'lines',
+        name: '99th Percentile',
+        yaxis: 'y2'
+      }
+    ];
+
+    const layout2 = {
+      title: 'Performance Metrics',
+      xaxis: {
+        title: 'Time'
+      },
+      yaxis: {
+        title: 'Requests per Second',
+        showline: true,
+        zeroline: true,
+        showgrid: false
+      },
+      yaxis2: {
+        title: 'Response Time (ms)',
+        overlaying: 'y',
+        side: 'right'
+      }
+    };
+
+    Plotly.newPlot('plot1', data1, layout1);
+    Plotly.newPlot('plot2', data2, layout2);
+
+  </script>
+</body>
+</html>
+

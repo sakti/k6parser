@@ -5,3 +5,7 @@ _default:
 
 test:
     cargo r -- result.gz
+
+check:
+    cargo fmt --check
+    cargo clippy
