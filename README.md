@@ -17,6 +17,12 @@ Options:
 ```
 
 
+## installing k6parser
+
+```
+$ cargo install --git https://github.com/sakti/k6parser
+```
+
 ## example
 
 ```
