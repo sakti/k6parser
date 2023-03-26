@@ -1,8 +1,12 @@
-use std::{fs, io::Read};
+use std::{
+    fs::{self, File},
+    io::{Read, Write},
+    path::PathBuf,
+};
 
 use chrono::{DateTime, SubsecRound, Utc};
 use clap::Parser;
-use color_eyre::eyre::Result;
+use color_eyre::{eyre::Result, Report};
 use flate2::read::GzDecoder;
 use itertools::Itertools;
 use k6::Record;
@@ -42,6 +46,9 @@ fn group_to_second<'a>(data: impl Iterator<Item = &'a Record>) -> Vec<(DateTime<
 #[command(author, version, about)]
 struct Args {
     file: String,
+
+    #[arg(short, long)]
+    output: Option<PathBuf>,
 }
 
 #[derive(Debug, Serialize)]
@@ -58,6 +65,8 @@ struct MeasurementPoint {
 fn main() -> Result<()> {
     color_eyre::install()?;
     let args = Args::parse();
+
+    println!("[*] k6 parser");
 
     let mut env = Environment::new();
     env.add_template("template.html", include_str!("template.html"))?;
@@ -141,7 +150,7 @@ fn main() -> Result<()> {
     }
 
     dbg!(counter);
-    dbg!(chunk_http_req_duration.len());
+    //dbg!(chunk_http_req_duration.len());
 
     // proceess remaining data
     if !chunk_http_req_duration.is_empty() {
@@ -172,7 +181,7 @@ fn main() -> Result<()> {
 
     // build measurement vector data
     let min_count = std::cmp::min(datetimes.len(), datetimes_vu.len());
-    dbg!(min_count);
+    //dbg!(min_count);
 
     let mut data = Vec::new();
 
@@ -226,8 +235,25 @@ fn main() -> Result<()> {
     let tmpl = env.get_template("template.html")?;
 
     let result = tmpl.render(context!(output => output))?;
+    save_to_file(args, result)?;
 
-    println!("{}", result);
+    Ok(())
+}
+
+fn save_to_file(args: Args, result: String) -> Result<()> {
+    let filename: PathBuf = match args.output {
+        Some(output_file) => output_file,
+        None => args.file.replace(".gz", ".html").into(),
+    };
+
+    if filename.exists() {
+        return Err(Report::msg(format!("{:?} already exists", filename)));
+    }
+
+    let mut file = File::create(&filename)?;
+    file.write_all(result.as_bytes())?;
+
+    println!("[*] {:?} created", filename);
 
     Ok(())
 }
