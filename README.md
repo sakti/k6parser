@@ -5,10 +5,11 @@
 parse k6 result
 
 ```
-Usage: k6parser [OPTIONS] <FILE>
+Usage: k6parser [OPTIONS] <FILE> [OUTPUT_TYPE]
 
 Arguments:
   <FILE>
+  [OUTPUT_TYPE]  [possible values: html, json]
 
 Options:
   -o, --output <OUTPUT>
