@@ -1,6 +1,6 @@
 [package]
 name = "k6parser"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2021"
 authors = ["Sakti Dwi Cahyono <me@saktidwicahyono.name>"]
 
@@ -12,11 +12,11 @@ license = "Apache-2.0"
 
 [dependencies]
 chrono = { version = "0.4.24", features = ["serde"] }
-clap = { version = "4.1.11", features = ["derive"] }
+clap = { version = "4.3.0", features = ["derive"] }
 color-eyre = "0.6.2"
 flate2 = "1.0.25"
 itertools = "0.10.5"
-minijinja = "0.30.7"
+minijinja = "0.32.1"
 quantogram = "0.4.4"
-serde = { version = "1.0.158", features = ["derive"] }
-serde_json = "1.0.94"
+serde = { version = "1.0.163", features = ["derive"] }
+serde_json = "1.0.96"

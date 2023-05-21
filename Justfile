@@ -4,6 +4,7 @@ _default:
 
 
 test:
+    cargo r -- result.gz json
     cargo r -- result.gz
 
 check:

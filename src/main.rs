@@ -5,7 +5,7 @@ use std::{
 };
 
 use chrono::{DateTime, SubsecRound, Utc};
-use clap::Parser;
+use clap::{Parser, ValueEnum};
 use color_eyre::{eyre::Result, Report};
 use flate2::read::GzDecoder;
 use itertools::Itertools;
@@ -42,6 +42,12 @@ fn group_to_second<'a>(data: impl Iterator<Item = &'a Record>) -> Vec<(DateTime<
     .collect()
 }
 
+#[derive(Clone, ValueEnum, Debug)]
+enum OutputType {
+    Html,
+    Json,
+}
+
 #[derive(Debug, Parser)]
 #[command(author, version, about)]
 struct Args {
@@ -49,6 +55,9 @@ struct Args {
 
     #[arg(short, long)]
     output: Option<PathBuf>,
+
+    #[arg(value_enum)]
+    output_type: Option<OutputType>,
 }
 
 #[derive(Debug, Serialize)]
@@ -232,18 +241,33 @@ fn main() -> Result<()> {
         .collect();
 
     let output = serde_json::to_string(&data)?;
-    let tmpl = env.get_template("template.html")?;
-
-    let result = tmpl.render(context!(output => output))?;
-    save_to_file(args, result)?;
+    save_to_file(args, output)?;
 
     Ok(())
 }
 
 fn save_to_file(args: Args, result: String) -> Result<()> {
+    let output_type = args.output_type.unwrap_or(OutputType::Html);
+
+    let output = match output_type {
+        OutputType::Html => {
+            let mut env = Environment::new();
+            env.add_template("template.html", include_str!("template.html"))?;
+            let tmpl = env.get_template("template.html")?;
+
+            let result = tmpl.render(context!(output => result))?;
+            result
+        },
+        OutputType::Json => result,
+    };
+
+
     let filename: PathBuf = match args.output {
         Some(output_file) => output_file,
-        None => args.file.replace(".gz", ".html").into(),
+        None => match output_type {
+            OutputType::Html => args.file.replace(".gz", ".html").into(),
+            OutputType::Json => args.file.replace(".gz", ".json").into(),
+        } ,
     };
 
     if filename.exists() {
@@ -251,7 +275,7 @@ fn save_to_file(args: Args, result: String) -> Result<()> {
     }
 
     let mut file = File::create(&filename)?;
-    file.write_all(result.as_bytes())?;
+    file.write_all(output.as_bytes())?;
 
     println!("[*] {:?} created", filename);
 
